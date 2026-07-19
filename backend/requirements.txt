@@ -1,0 +1,17 @@
+# API framework 
+fastapi
+uvicorn[standard]
+python-multipart          # file uploads in FastAPI
+
+# PDF + OCR 
+pymupdf                   
+pytesseract              
+pillow                   
+
+instructor                # structured output + validation
+google-genai             
+groq                     
+pydantic 
+jsonref               # flattens nested schemas for Gemini                 
+
+python-dotenv             # load API keys from .env
