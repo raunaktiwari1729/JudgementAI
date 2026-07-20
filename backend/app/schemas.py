@@ -27,6 +27,7 @@ class CaseDetails(BaseModel):
     petitioner: str
     respondent: str
     source: Source
+    responsible_department: str
 
 
 class Direction(BaseModel):
