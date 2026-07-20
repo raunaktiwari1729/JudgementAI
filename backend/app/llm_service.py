@@ -21,6 +21,7 @@ RULES:
 - Do NOT repeat yourself. Output each value once, no duplicate sentences.
 - summary: 2-3 sentences, plain English, no legal jargon.
 - Set priority and overall_urgency from deadlines and legal impact.
+- responsible_department: infer the government department responsible for compliance from the respondent and subject matter (e.g. GST + State of UP -> "Commercial Tax Department, Govt of UP"). If it's a private dispute with no government body, use "Not specified".
 
 JUDGMENT:
 {text}
