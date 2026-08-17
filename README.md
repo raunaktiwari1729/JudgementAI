@@ -11,14 +11,15 @@ JudgmentAI reads the judgment (PDF) and pulls those answers out for you — the 
 
 Government departments receive court judgments all the time, but the practical questions are always the same: *Do we have to do something? By when? Is it even our department's job?* Getting that wrong — or just getting it late — can mean a missed compliance deadline. Reading every judgment line by line to find out doesn't scale.
 
-JudgmentAI does that reading. It won't replace a lawyer, but it turns a long judgment into a short, clear checklist an officer can act on — and because every field points back to its source sentence, nothing has to be taken on trust.
+JudgmentAI does that reading. It won't replace a lawyer, but it turns a long judgment into a short, clear checklist an officer can act on and because every field points back to its source sentence, nothing has to be taken on trust.
 
 ## How it works
 
 1. **Read the PDF** — text is pulled with PyMuPDF; scanned pages fall back to OCR (Tesseract).
 2. **Extract** — the text goes to an LLM that fills a strict schema: case details, the responsible government department, court directions, action items, deadlines, appeal window, and an overall urgency. Gemini 2.5 Flash does the work; if it fails, Groq (LLaMA 3.3 70B) takes over.
-3. **Ground every field** — each extracted fact carries the exact source sentence, its page number, and a confidence score. This is the whole point: any answer traces back to the line it came from.
-4. **Show it** — results land on a dashboard, and every case is saved to a library you can sort (by date, urgency, court, or department) and filter.
+3. **Human in the loop** - After the result comes out the reviewer can see and decide whether to edit it or keep that so that the real human judgment comes into the picture.
+4. **Ground every field** — each extracted fact carries the exact source sentence, its page number, and a confidence score. This is the whole point: any answer traces back to the line it came from.
+5. **Show it** — results land on a dashboard, and every case is saved to a library you can sort (by date, urgency, court, or department) and filter.
 
 ## Tech
 

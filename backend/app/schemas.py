@@ -57,3 +57,4 @@ class JudgmentAnalysis(BaseModel):
     action_items: List[ActionItem]
     appeal_window: AppealWindow
     overall_urgency: Urgency
+
