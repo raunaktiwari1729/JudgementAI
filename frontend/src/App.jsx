@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useRef } from "react";
 import { analyzePdf } from "./api";
 import "./App.css";
@@ -134,6 +132,145 @@ function CaseRow({ item, onOpen, onDelete }) {
   );
 }
 
+// deep-clone helper for the editable draft
+function cloneDraft(data) {
+  return JSON.parse(JSON.stringify(data));
+}
+
+// editable review screen — appears after LLM extraction, before publishing
+function ReviewPanel({ draft, setDraft, onApprove, onDiscard }) {
+  const cd = draft.case_details;
+
+  function updateCase(key, value) {
+    setDraft((d) => ({ ...d, case_details: { ...d.case_details, [key]: value } }));
+  }
+  function updateTop(key, value) {
+    setDraft((d) => ({ ...d, [key]: value }));
+  }
+  function updateAppeal(key, value) {
+    setDraft((d) => ({ ...d, appeal_window: { ...d.appeal_window, [key]: value } }));
+  }
+  function updateDirection(i, key, value) {
+    setDraft((d) => {
+      const list = [...d.directions];
+      list[i] = { ...list[i], [key]: value };
+      return { ...d, directions: list };
+    });
+  }
+  function updateActionItem(i, key, value) {
+    setDraft((d) => {
+      const list = [...d.action_items];
+      list[i] = { ...list[i], [key]: value };
+      return { ...d, action_items: list };
+    });
+  }
+  function removeDirection(i) {
+    setDraft((d) => ({ ...d, directions: d.directions.filter((_, idx) => idx !== i) }));
+  }
+  function removeActionItem(i) {
+    setDraft((d) => ({ ...d, action_items: d.action_items.filter((_, idx) => idx !== i) }));
+  }
+
+  return (
+    <div className="dossier">
+      <div className="review-banner">
+        <span className="eyebrow">Pending review</span>
+        <p>Check the extraction below, correct anything the model got wrong, then publish it to the library.</p>
+      </div>
+
+      <section className="record">
+        <h3 className="record-title">Case details</h3>
+        <div className="edit-grid">
+          <label>Title<input value={cd.title} onChange={(e) => updateCase("title", e.target.value)} /></label>
+          <label>Case no.<input className="mono" value={cd.case_number} onChange={(e) => updateCase("case_number", e.target.value)} /></label>
+          <label>Court<input value={cd.court} onChange={(e) => updateCase("court", e.target.value)} /></label>
+          <label>Judges<input value={cd.judges.join(", ")} onChange={(e) => updateCase("judges", e.target.value.split(",").map((s) => s.trim()))} /></label>
+          <label>Date<input className="mono" value={cd.date} onChange={(e) => updateCase("date", e.target.value)} /></label>
+          <label>Petitioner<input value={cd.petitioner} onChange={(e) => updateCase("petitioner", e.target.value)} /></label>
+          <label>Respondent<input value={cd.respondent} onChange={(e) => updateCase("respondent", e.target.value)} /></label>
+          <label>Department<input value={cd.responsible_department} onChange={(e) => updateCase("responsible_department", e.target.value)} /></label>
+        </div>
+        <Citation source={cd.source} />
+      </section>
+
+      <section className="record">
+        <h3 className="record-title">Summary &amp; urgency</h3>
+        <label className="edit-block">
+          Summary
+          <textarea rows={3} value={draft.summary} onChange={(e) => updateTop("summary", e.target.value)} />
+        </label>
+        <label className="edit-block edit-inline">
+          Overall urgency
+          <select value={draft.overall_urgency} onChange={(e) => updateTop("overall_urgency", e.target.value)}>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+      </section>
+
+      <section className="record">
+        <h3 className="record-title">Appeal window</h3>
+        <div className="edit-grid">
+          <label className="edit-inline">
+            Can appeal
+            <select value={String(draft.appeal_window.can_appeal)} onChange={(e) => updateAppeal("can_appeal", e.target.value === "true")}>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </label>
+          <label>Deadline<input className="mono" value={draft.appeal_window.deadline} onChange={(e) => updateAppeal("deadline", e.target.value)} /></label>
+          <label>Days left<input className="mono" type="number" value={draft.appeal_window.days_remaining} onChange={(e) => updateAppeal("days_remaining", Number(e.target.value))} /></label>
+        </div>
+        <Citation source={draft.appeal_window.source} />
+      </section>
+
+      <section className="record">
+        <h3 className="record-title">Directions <span className="count">{draft.directions.length}</span></h3>
+        {draft.directions.length === 0 && <p className="empty">No directions extracted.</p>}
+        {draft.directions.map((d, i) => (
+          <div key={i} className="entry edit-entry">
+            <label className="edit-block">Text<textarea rows={2} value={d.text} onChange={(e) => updateDirection(i, "text", e.target.value)} /></label>
+            <label>Deadline<input className="mono" value={d.deadline} onChange={(e) => updateDirection(i, "deadline", e.target.value)} /></label>
+            <button className="remove-entry" onClick={() => removeDirection(i)}>Remove this direction</button>
+            <Citation source={d.source} />
+          </div>
+        ))}
+      </section>
+
+      <section className="record">
+        <h3 className="record-title">Action items <span className="count">{draft.action_items.length}</span></h3>
+        {draft.action_items.length === 0 && <p className="empty">No action items extracted.</p>}
+        {draft.action_items.map((a, i) => (
+          <div key={i} className="entry edit-entry">
+            <label className="edit-block">Task<textarea rows={2} value={a.task} onChange={(e) => updateActionItem(i, "task", e.target.value)} /></label>
+            <div className="edit-grid">
+              <label className="edit-inline">
+                Priority
+                <select value={a.priority} onChange={(e) => updateActionItem(i, "priority", e.target.value)}>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label>Due<input className="mono" value={a.due_date} onChange={(e) => updateActionItem(i, "due_date", e.target.value)} /></label>
+            </div>
+            <button className="remove-entry" onClick={() => removeActionItem(i)}>Remove this item</button>
+            <Citation source={a.source} />
+          </div>
+        ))}
+      </section>
+
+      <div className="review-actions">
+        <button className="discard-btn" onClick={onDiscard}>Discard</button>
+        <button className="approve-btn" onClick={onApprove}>Approve &amp; publish to dashboard</button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [cases, setCases] = useState(loadCases);
   const [selectedId, setSelectedId] = useState(null);
@@ -143,6 +280,7 @@ function App() {
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const inputRef = useRef(null);
+  const [pendingReview, setPendingReview] = useState(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
@@ -154,14 +292,23 @@ function App() {
     setError("");
     try {
       const data = await analyzePdf(file);
-      const item = { id: Date.now().toString(), addedAt: Date.now(), data };
-      setCases((prev) => [item, ...prev]);
+      setPendingReview(cloneDraft(data)); // editable draft, nothing saved yet
       setFile(null);
-      setSelectedId(item.id); // jump straight into the new case
     } catch {
       setError("Couldn't reach the analyzer. The backend may be waking up — wait a moment and try again.");
     }
     setLoading(false);
+  }
+
+  function approveReview() {
+    const item = { id: Date.now().toString(), addedAt: Date.now(), data: pendingReview };
+    setCases((prev) => [item, ...prev]);
+    setPendingReview(null);
+    setSelectedId(item.id);
+  }
+
+  function discardReview() {
+    setPendingReview(null);
   }
 
   function deleteCase(id) {
@@ -193,13 +340,20 @@ function App() {
       </header>
 
       <main className="shell">
-        {selected ? (
+        {pendingReview ? (
+          <ReviewPanel
+            draft={pendingReview}
+            setDraft={setPendingReview}
+            onApprove={approveReview}
+            onDiscard={discardReview}
+          />
+        ) : selected ? (
           <CaseDetail data={selected.data} onBack={() => setSelectedId(null)} />
         ) : (
           <>
             <section className="intake">
               <h1 className="intake-title">Analyze a judgment</h1>
-              <p className="intake-help">PDF only. Digital or scanned — scanned files are read with OCR.</p>
+              <p className="intake-help">PDF only. Digital or scanned. (Scanned files are read with OCR.)</p>
               <div className="intake-row">
                 <input ref={inputRef} type="file" accept=".pdf" hidden
                   onChange={(e) => setFile(e.target.files[0])} />

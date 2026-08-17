@@ -158,3 +158,42 @@ body {
 html, body { width: 100%; margin: 0; display: block; }
 #root { width: 100%; max-width: none; margin: 0; padding: 0; }
 .masthead-inner, .shell { max-width: 1040px; }
+
+
+
+/* ============ review / human-in-the-loop ============ */
+
+.review-banner { background: #FBF6EC; border: 1px solid var(--brass-soft); border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; }
+.review-banner .eyebrow { margin-bottom: 6px; }
+.review-banner p { font-size: 14px; color: var(--ink-soft); }
+
+.edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin-bottom: 4px; }
+.edit-grid label, .edit-block { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 14px; }
+.edit-block { margin-bottom: 12px; }
+.edit-inline { flex-direction: row; align-items: center; gap: 10px; }
+
+.edit-grid input, .edit-block input, .edit-block textarea, .edit-block select, .edit-inline select {
+  font-family: var(--sans); font-size: 14px; font-weight: 400; text-transform: none; letter-spacing: normal;
+  color: var(--text); background: #fff; border: 1px solid var(--hairline); border-radius: 6px;
+  padding: 8px 10px; width: 100%;
+}
+.edit-grid input.mono, .edit-block input.mono { font-family: var(--mono); font-size: 13px; }
+.edit-block textarea { resize: vertical; }
+.edit-inline select { width: auto; }
+.edit-grid input:focus, .edit-block textarea:focus, .edit-block select:focus { outline: 2px solid var(--brass); outline-offset: 1px; border-color: var(--brass); }
+
+.edit-entry { border: 1px solid var(--hairline); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.remove-entry { font-size: 12px; color: var(--critical); background: none; border: none; cursor: pointer; padding: 2px 0; margin-bottom: 8px; }
+.remove-entry:hover { text-decoration: underline; }
+
+.review-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 20px 4px 4px; }
+.discard-btn { font-size: 14px; font-weight: 500; color: var(--critical); background: #fff; border: 1px solid var(--hairline); border-radius: 7px; padding: 10px 20px; cursor: pointer; }
+.discard-btn:hover { background: #FBEAE8; }
+.approve-btn { font-size: 14px; font-weight: 600; color: #fff; background: var(--low); border: none; border-radius: 7px; padding: 10px 24px; cursor: pointer; }
+.approve-btn:hover { background: #256844; }
+
+@media (max-width: 560px) {
+  .edit-grid { grid-template-columns: 1fr; }
+  .review-actions { flex-direction: column-reverse; }
+  .review-actions button { width: 100%; }
+}
